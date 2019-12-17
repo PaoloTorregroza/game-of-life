@@ -1,0 +1,48 @@
+header {
+    background: #FFFFFF;
+    padding: 17px;;
+    display: flex;
+    justify-content: space-between;
+    font-size: 18px;
+    font-weight: bold;
+    color:#35495E;
+  }
+  .header-menu button{
+    border: none;
+    background: #F6F6F6;
+    border-radius: 15%;
+    margin: 4px;
+    padding: 12px;
+    padding-left: 18px;
+    padding-right: 18px;
+    font-size: 16px;
+  }
+  .header-menu button:hover {
+    background-color: #727F80;
+  }
+  .main-div {
+    background-color: darkslategrey;
+    height: 100%;
+  }
+  .cell-container {
+      margin-top: 10px;
+      vertical-align: inherit;
+      border-color: inherit;
+  }
+  .cell-row {
+    height: 10%;
+  }
+  .cell-{
+      border-radius: 5%;
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      outline: 1px solid darkslategray;
+  }
+  .cell-live {
+    background: #41B883;
+  }
+  .cell-dead {
+    background: #727F80;
+  }
+  
