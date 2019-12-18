@@ -3,222 +3,92 @@
     <header>
       <p>The Conway's game of life</p>
       <div class="header-menu">
-        <button @click="die">Die!</button>
-        <button @click="live">Live!</button> 
-        <button @click="play">Play!</button> 
-        <button @click="stop">Stop!</button>
+        <button @click="play">Play</button>
       </div>
     </header>
-    <div class="cell-container">
-      <div class="cell-row" v-for="celldivs in cells" :key="celldivs.id">
-
-        <div v-for="cell in celldivs" :class="'cell- cell-'+cell.state" 
-        :key="cell.id" @click="changeState(cell)">
-        </div>
-
-      </div>
+    <div class="mainGrid">
+      <table class="board">
+        <tbody>
+          <tr v-for="row in cells" :key="row.id">
+            <td :class="'cell-'+cell.state" v-for="cell in row" :key="cell.id"></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
 <script>
-export default {
+import {countNeighbors, rulesAply} from '../algoritms/lifeAlgo.js'
+
+export default{
   name: "Board",
-  data() {
+  data(){
     return{
       cells: [
+        
+      ],
+      nextStates: [
 
       ],
-      playing: false,
-      newState:[
-
-      ]
+      steps: 75,
     }
   },
-  created() {
-    for(let i = 0; i < 10; i++){
-      let element = []
-      for(let j = 0; j < 20; j++){
-        let rand = Math.random();
-        if(rand >= 0.65){
-          element.push({ state:"live", neighbors: 0, row: i, column: j })
-        }else{
-          element.push({ state:"dead", neighbors: 0, row: i, column: j })
+  created(){
+    for(let i = 0; i < 24; i++){
+      this.cells.push([])
+      for(let j = 0; j < 60; j++){
+        let state = Math.random()
+        if(state > .8){
+          this.cells[i].push({state: 1, row: i, col: j})
+        }else {
+          this.cells[i].push({state: 0, row: i, col: j})
         }
       }
-      this.cells.push(element)
-    }
-  },
-  computed: {
+    }   
   },
   methods: {
-    die(){
-      for(let i = 0; i < this.cells.length; i++){
-        for(let j = 0; j < this.cells[i].length; j++){
-            this.cells[i][j].state = "dead"
-        }
-      }
-    },
-    live() {
-      for(let i = 0; i < this.cells.length; i++){
-        for(let j = 0; j < this.cells[i].length; j++){
-          this.cells[i][j].state = "live"
-        }
-      }
-    },
-    changeState(cell) {
-      if(cell.state=="live"){
-        cell.state="dead"
-      }else{
-        cell.state="live"
-      }
-    },
     play() {
-      this.playing = true
-      this.totalNeighbors()
-    },
-    stop(){
-      this.playing = false
-    },
-    isAlive(pos){
-      if(pos.state=="live"){
-        return true
-      }
-    },
-    calcNewState() {
-      let nextState = this.cells
-      for(let i = 0; i < nextState.length; i++) {
-        for(let j = 0; j < nextState[i].length; j++) {
-          //Rule 1: <2 neighbors = dead
-          if(nextState[i][j].neighbors < 2 && nextState[i][j].state == "live")
-          {nextState[i][j].state = "dead"}
-          //Rule 2: 2 or 3 neighbors is OK
-          //Rule 3 Overpopulation
-          if(nextState[i][j].neighbors > 3 && nextState[i][j].state == "live")
-          {nextState[i][j].state = "dead"}
-          //Rule 4: Reproduction
-          if(nextState[i][j].neighbors == 3 && nextState[i][j].state == "dead")
-          {nextState[i][j].state  = "live"}
-          nextState[i][j].neighbors = 0;
-        }
-      }
-      this.cells = nextState
-    },
-    totalNeighbors(){
-      if(this.playing == true){
-        for(let i = 0; i < this.cells.length; i++){
-          for(let t = 0; t < this.cells[i].length; t++){
-            this.cells[i][t].neighbors = this.checkNeighbors(this.cells[i][t])
+      let board = this.cells //Actuall board
+      let newBoards = []//Array of all the boards
+      let cellNeighbors //Save the number of neighbors of x cell
+      let rowOfCells = [] // An array whit a row of cells
+
+      for(let n = 0; n < this.steps; n++)
+      {
+        newBoards.push([])
+        for(let i = 0; i < board.length; i++)
+        {
+           //A new cell to push into an array    
+          for(let j = 0; j < board[i].length; j++)
+          {  
+            const newCell = {state: 0, row: i, col: j}
+
+            cellNeighbors = countNeighbors(i, j, board)
+            
+            // Apply rules to cell
+            newCell.state = rulesAply(cellNeighbors, board[i][j].state)
+            // Add new cells to an array
+            rowOfCells.push(newCell)
+            // Set timeout for make a steps animation of every state in the array
           }
+          newBoards[n].push(rowOfCells)
+          rowOfCells = []
         }
-        this.calcNewState()
       }
+      this.nextStates = newBoards
+      this.nextSteps()
     },
-    checkNeighbors(cell) {
-      
-      let totalNeighbors = 0;
-      let espCond = false
-
-      // TOP AND BOTTOM
-      if(cell.row==0 && cell.column != 0 && cell.column != this.cells[0].length-1){
-        espCond = true
-        // Same row
-        if(this.isAlive(this.cells[cell.row][cell.column-1])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row][cell.column+1])){totalNeighbors++}
-        // One down
-        if(this.isAlive(this.cells[cell.row+1][cell.column-1])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row+1][cell.column])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row+1][cell.column+1])){totalNeighbors++}
-
-      } else if(cell.row==this.cells.length-1 && cell.column != 0 && cell.column != this.cells[0].length-1){
-        espCond = true
-        // One up
-        if(this.isAlive(this.cells[cell.row-1][cell.column-1])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row-1][cell.column])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row-1][cell.column+1])){totalNeighbors++}
-        // Same row
-        if(this.isAlive(this.cells[cell.row][cell.column-1])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row][cell.column+1])){totalNeighbors++}
-      }
-
-      // LEFT AND RIGHT
-      if(cell.column==0 && cell.row != this.cells.length-1 && cell.row != 0){
-        espCond = true
-        // One up
-        if(this.isAlive(this.cells[cell.row-1][cell.column])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row-1][cell.column+1])){totalNeighbors++}
-        // Same row
-        if(this.isAlive(this.cells[cell.row][cell.column+1])){totalNeighbors++}
-        // One down
-        if(this.isAlive(this.cells[cell.row+1][cell.column])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row+1][cell.column+1])){totalNeighbors++}
-
-      } else if(cell.column==this.cells[0].length-1 && cell.row != this.cells.length-1  && cell.row != 0){
-        espCond = true
-        
-        // One up
-        if(this.isAlive(this.cells[cell.row-1][cell.column-1])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row-1][cell.column])){totalNeighbors++}
-        // Same row
-        if(this.isAlive(this.cells[cell.row][cell.column-1])){totalNeighbors++}
-        // One down
-        if(this.isAlive(this.cells[cell.row+1][cell.column-1])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row+1][cell.column])){totalNeighbors++}
-      }
-
-      // CORNERS
-      if(cell.column==0 && cell.row==0){
-        espCond = true
-        // Same row
-        if(this.isAlive(this.cells[cell.row][cell.column+1])){totalNeighbors++}
-        // One down
-        if(this.isAlive(this.cells[cell.row+1][cell.column])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row+1][cell.column+1])){totalNeighbors++}
-      }
-      if(cell.row==0 && cell.column==this.cells[0].length-1){
-        espCond = true
-        // Same row
-        if(this.isAlive(this.cells[cell.row][cell.column-1])){totalNeighbors++}
-        // One down
-        if(this.isAlive(this.cells[cell.row+1][cell.column-1])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row+1][cell.column])){totalNeighbors++}
-      }
-      if(cell.row==this.cells.length - 1 && cell.column==0){
-        espCond = true
-        // One up
-        if(this.isAlive(this.cells[cell.row-1][cell.column])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row-1][cell.column+1])){totalNeighbors++}
-        // Same row
-        if(this.isAlive(this.cells[cell.row][cell.column+1])){totalNeighbors++}
-      }
-      if(cell.row==this.cells.length-1 && cell.column==this.cells[0].length-1){
-        espCond = true
-        // One up
-        if(this.isAlive(this.cells[cell.row-1][cell.column-1])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row-1][cell.column])){totalNeighbors++}
-        // Same row
-        if(this.isAlive(this.cells[cell.row][cell.column-1])){totalNeighbors++}
-      }
-
-      if(espCond){
-        return totalNeighbors
-      }else {
-        // One up
-        if(this.isAlive(this.cells[cell.row-1][cell.column-1])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row-1][cell.column])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row-1][cell.column+1])){totalNeighbors++}
-        // Same row
-        if(this.isAlive(this.cells[cell.row][cell.column-1])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row][cell.column+1])){totalNeighbors++}
-        // One down
-        if(this.isAlive(this.cells[cell.row+1][cell.column-1])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row+1][cell.column])){totalNeighbors++}
-        if(this.isAlive(this.cells[cell.row+1][cell.column+1])){totalNeighbors++}
-      }
-      return totalNeighbors
-
+    nextSteps(){
+      console.log(this.cells)
+      console.log(this.nextStates)
+     for(let i = 0; i < this.nextStates.length; i++)
+      setTimeout(() => {
+          this.cells = this.nextStates[i]
+          console.log("changed")
+      }, 220*i)   
     }
-  }, 
+  }
 }
 </script>
 
