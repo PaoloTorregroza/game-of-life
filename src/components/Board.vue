@@ -4,6 +4,7 @@
       <p>The Conway's game of life</p>
       <div class="header-menu">
         <button @click="play">Play</button>
+        <button @click="stop">Stop</button>
       </div>
     </header>
     <div class="mainGrid">
@@ -15,6 +16,7 @@
         </tbody>
       </table>
     </div>
+    <p>{{ indexOfActuallState }}</p>
   </div>
 </template>
 
@@ -31,7 +33,8 @@ export default{
       nextStates: [
 
       ],
-      steps: 75,
+      steps: 10,
+      indexOfActuallState: 0,
     }
   },
   created(){
@@ -48,7 +51,11 @@ export default{
     }   
   },
   methods: {
+    stop(){
+      clearInterval(this.$options.interval)
+    },
     play() {
+      this.indexOfActuallState =0 
       let board = this.cells //Actuall board
       let newBoards = []//Array of all the boards
       let cellNeighbors //Save the number of neighbors of x cell
@@ -77,17 +84,17 @@ export default{
         }
       }
       this.nextStates = newBoards
-      this.nextSteps()
+      this.$options.interval = setInterval(this.nextSteps, 1000)
+
     },
     nextSteps(){
-      console.log(this.cells)
-      console.log(this.nextStates)
-     for(let i = 0; i < this.nextStates.length; i++)
-      setTimeout(() => {
-          this.cells = this.nextStates[i]
-          console.log("changed")
-      }, 220*i)   
-    }
+      if(this.indexOfActuallState == this.steps-1){        
+        clearInterval(this.$options.interval)
+      }
+      this.cells = this.nextStates[this.indexOfActuallState]
+      console.log(this.cells == this.nextStates[this.indexOfActuallState])
+      this.indexOfActuallState++  
+    },
   }
 }
 </script>
