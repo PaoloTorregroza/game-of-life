@@ -3,6 +3,7 @@
 export function countNeighbors(y, x, board){
     let neighbors = 0
 
+    // Y = Row, X = col
     // CORNERS
     // Top left
     if(y == 0 && x == 0){
@@ -83,7 +84,7 @@ export function countNeighbors(y, x, board){
 // Return a state based on neighbors
 export function rulesAply(neighbors, state) {
     if(neighbors < 2) {return 0}
-    if(neighbors > 3) {return 0}
-    if(neighbors == 3){return 1}
+    if(neighbors > 3 && state == 1) {return 0}
+    if(neighbors == 3 && state == 0){return 1}
     return state
 }
